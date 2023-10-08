@@ -1,0 +1,11 @@
+.container {
+    /* background-color: #435A5F; */
+    border-radius: 10px;
+    padding: 5px;
+}
+
+@media (width < 850px) {
+    h2 {
+        font-size: 14px;
+    }
+}
