@@ -1,14 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { RootState } from '../../store';
+import { TaskInterface } from '../../../components/Kanban/Kanban';
 
 export interface PopupState {
   isOpen: boolean,
-  editText: string
+  editText: string,
+  isDeletePopupOpen: boolean,
+  taskToDeletePopup: TaskInterface | null;
 }
 
 const initialState: PopupState = {
   isOpen: false,
-  editText: ''
+  editText: '',
+  isDeletePopupOpen: false,
+  taskToDeletePopup: null
 };
 
 export const popupSlice = createSlice({
@@ -21,14 +26,32 @@ export const popupSlice = createSlice({
     setPopupClose: (state) => {
       state.isOpen = false;
     },
+    setDeletePopupOpen: (state) => {
+      state.isDeletePopupOpen = true;
+    },
+    setDeletePopupClose: (state) => {
+      state.isDeletePopupOpen = false;
+    },
     setEditText: (state, action) => {
       state.editText = action.payload;
+    },
+    setTaskToDeletePopup: (state, action) => {
+      state.taskToDeletePopup = action.payload;
     },
   },
 });
 
-export const { setPopupOpen, setPopupClose, setEditText } = popupSlice.actions;
+export const { 
+  setPopupOpen, 
+  setPopupClose,
+  setEditText, 
+  setDeletePopupClose, 
+  setDeletePopupOpen,
+  setTaskToDeletePopup
+} = popupSlice.actions;
 export const selectOpen = (state: RootState) => state.popupSlice.isOpen;
 export const selectEditText = (state: RootState) => state.popupSlice.editText;
+export const selectDeletePopupIsOpen = (state: RootState) => state.popupSlice.isDeletePopupOpen;
+export const selectTaskToDeletePopup = (state: RootState) => state.popupSlice.taskToDeletePopup;
 
 export default popupSlice.reducer;

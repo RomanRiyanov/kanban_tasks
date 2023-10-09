@@ -4,8 +4,7 @@ import edit_button from '../../assets/edit_button.svg';
 import { Draggable } from 'react-beautiful-dnd';
 import { TaskInterface } from '../Kanban/Kanban';
 import { useAppDispatch } from '../../store/hooks';
-import { deleteTask, editTask } from '../../store/reducers/tasks/tasksReducer';
-import { setPopupOpen, setEditText } from '../../store/reducers/popup/popupReducer';
+import { setPopupOpen, setEditText, setDeletePopupOpen, setTaskToDeletePopup } from '../../store/reducers/popup/popupReducer';
 
 interface TaskProps {
     task: TaskInterface;
@@ -16,13 +15,15 @@ function Task ({task, index}: TaskProps) {
     const dispatch = useAppDispatch();
 
     const handleDeleteTask = () => {
-        dispatch(deleteTask(task))
+        dispatch(setPopupOpen());
+        dispatch(setDeletePopupOpen());
+        dispatch(setTaskToDeletePopup(task));
     }
 
     const handleEditTask = () => {
-        dispatch(setPopupOpen());
         dispatch(setEditText(task.text));
-        dispatch(editTask(task))
+        dispatch(setTaskToDeletePopup(task));
+        dispatch(setPopupOpen());
     }
 
     return ( 

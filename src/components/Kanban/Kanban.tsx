@@ -3,8 +3,12 @@ import styles from './Kanban.module.css';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { selectAllTasks, addTaskAfterMoved } from '../../store/reducers/tasks/tasksReducer';
+import { initialState } from '../../store/reducers/tasks/tasksReducer';
 import Column from '../Column/Column';
-// import Popup from '../Popup/Popup';
+
+//фейковый вызов Api
+import { sendApiData, getApiData } from '../../api/Api';
+
   
 export interface TaskInterface {
     text: string;
@@ -19,38 +23,6 @@ export interface ColumnIntarface {
 }
 
 export type Columns = ColumnIntarface[];
-
-// const DataBaseColumns: Columns = [
-//     {
-//         name: 'first',
-//         title: 'План',
-//         items: [
-//             {
-//                 text: 'Задача 1',
-//                 id: 'qwerty234567'
-//             }, 
-//             {
-//                 text: 'Задача123Задача123З адача123Задача123vv Задача123vЗадач а123Задача12 3Задача123',
-//                 id: 'rtyuiop4567'
-//             },         
-//         ],
-//     },
-//     {
-//         name: 'second',
-//         title: 'В работе',
-//         items: [],
-//     },
-//     {
-//         name: 'third',
-//         title: 'В тестировании',
-//         items: [],
-//     },
-//     {
-//         name: 'fourth',
-//         title: 'Выполнено',
-//         items: [],
-//     },
-// ];
 
 function Kanban () {
     const [columns, setColumns] = useState<Columns>();
@@ -67,21 +39,19 @@ function Kanban () {
         const sourceColumn = columns?.filter((column) => column.name === source.droppableId)[0];
         const destColumn = columns?.filter((column) => column.name === destination.droppableId)[0];
 
-         if (sourceColumn && destColumn) {   
+         if (sourceColumn && destColumn) {
+            //узнаем текущие элементы в колонках отправения и назначения
             const sourceItems = [...sourceColumn.items];
             const destItems = [...destColumn.items];
 
+            //узнаем элемент, который мы подвинули и удаляем его в колонке отправления
             const [removed] = sourceItems.splice(source.index, 1);
+            
+            // меняем у подвинутого элемента значение колонки col
             const removedCopy = {...removed};
             removedCopy.col = destination.droppableId;
-
-            const movingTask = {
-                oldColumn: source.droppableId,
-                newColumn: destination.droppableId,
-                newTask: removedCopy
-            }
-            dispatch(addTaskAfterMoved(movingTask))
             
+            //добавляем новый элемент в колонку отправления
             destItems.splice(destination.index, 0, removedCopy);
 
             setColumns([...columns].map(column => {
@@ -122,28 +92,24 @@ function Kanban () {
     }
     };
 
-    // const handleChangeTasks = (task: string) => {
-    //     if (columns) {
-    //         setColumns([...columns].map(column => {
-    //         if (column.name === 'first') {
-    //             const oldItems = column.items;
-    //             const newItem = {
-    //                 id: task.slice(0, 10),
-    //                 text: task
-    //             }
-    //           return {
-    //             ...column,
-    //             items: [...oldItems, newItem],
-    //           }
-    //         } 
-    //             else return column;
-    //         }))    
-    //     }
-    // }
-
     useEffect(() => {
         setColumns(allTasksFromReduxStore)
     }, [allTasksFromReduxStore])
+
+    useEffect(() => {
+        if (columns) {
+            dispatch(addTaskAfterMoved(columns));
+            sendApiData(columns);
+        }
+    }, [columns])
+
+    useEffect(() => {
+        const apiColumns = getApiData();
+
+        if (apiColumns) {
+            setColumns(apiColumns)
+        } else sendApiData(initialState.columns)
+    }, [])
 
     return ( 
         <main className={styles.container}>

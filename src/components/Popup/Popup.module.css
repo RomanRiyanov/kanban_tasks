@@ -1,6 +1,4 @@
-.close {
-    /* position: relative; */
-    /* right: -10px; */
+.closeButton {
     align-self: flex-end;
     width: 22px;
     height: 22px;
@@ -10,7 +8,6 @@
     background-position: center;
     background-repeat: none;
 }
-
     
 .popup {
     position: fixed;
@@ -28,15 +25,55 @@
     left: 50%;
     width: 60%;
     transform: translate(-50%, -50%);
-    min-height: 40%;
+    min-height: 30%;
     padding: 40px;
     border-radius: 20px;
     background-color: #4C9DAF;
     text-align: start;
     display: flex;
     flex-direction: column;
+    justify-content: space-around;
 }
 
 .viewable {
     display: block;
-  }
+}
+
+.textarea {
+    height: 80px;
+    padding: 10px;
+    overflow-y: scroll;
+    background-color: #435A5F;
+    font-size: 1.5rem;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 40px;
+}
+
+.textarea::-webkit-scrollbar {
+    width: 1px;
+}
+
+.subtitle {
+    margin: 0 0 20px;
+}
+
+.select {
+    border-radius: 10px;
+    height: 30px;
+    background-color: #467F8D;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.addButton {
+    max-width: 380px;
+    align-self: center;
+    background-color: #435A5F;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}

@@ -5,22 +5,32 @@ import { useState, useEffect, useRef } from 'react';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setPopupClose, selectOpen, selectEditText, setEditText } from '../../store/reducers/popup/popupReducer';
-import { addTask, selectAllTasks } from '../../store/reducers/tasks/tasksReducer';
+import { 
+    setPopupClose,
+    selectOpen, 
+    selectEditText, 
+    setEditText, 
+    setDeletePopupClose, 
+    selectDeletePopupIsOpen,
+    setTaskToDeletePopup,
+    selectTaskToDeletePopup
+ } 
+from '../../store/reducers/popup/popupReducer';
+import { addTask, deleteTask } from '../../store/reducers/tasks/tasksReducer';
 import { TaskInterface } from '../Kanban/Kanban';
 
 const cx = classNames.bind(styles);
   
 function Popup() {
-
-    
     const [columnValue, setColumnValue] = useState('first');
     
     const dispatch = useAppDispatch();
     const isOpen = useAppSelector(selectOpen);
-    const allTasks = useAppSelector(selectAllTasks);
+    const isDeletePopupOpen = useAppSelector(selectDeletePopupIsOpen);
+    const taskToDelete = useAppSelector(selectTaskToDeletePopup);
     const editText = useAppSelector(selectEditText);
     const [inputValue, setInputValue] = useState(editText);
+    
     const popupWindowClassName = cx({
         popup: true,
         viewable: isOpen === true,
@@ -30,48 +40,70 @@ function Popup() {
 
     const handleCloseButton = () => {
         dispatch(setPopupClose());
+        dispatch(setEditText(''));
+        dispatch(setDeletePopupClose());
+        setInputValue('')
     }
 
-    // const handleAddTask = () => {
-    //     handleChangeTasks(inputValue);
-    //     setInputValue('');
-    //     dispatch(setPopupClose());
-    // }
+    const handleDeleteTask = () => {
+        taskToDelete && dispatch(deleteTask(taskToDelete));
+        dispatch(setTaskToDeletePopup(null));
+        handleCloseButton();
+    }
 
-    const handleAddTask = () => {
-        // handleChangeTasks(inputValue);
 
-        const newTask: TaskInterface = {
-            text: inputValue,
-            id: uuidv4(),
-            col: columnValue
-        }
-        dispatch(addTask(newTask));
-        setInputValue('');
-        dispatch(setEditText(''))
-        dispatch(setPopupClose());
+    const handleTask = (e: React.FormEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        if (inputValue.length > 2 && inputValue.length < 300) {
+                const newTask: TaskInterface = {
+                text: inputValue,
+                id: uuidv4(),
+                col: columnValue
+            }
+            if (editText)    {
+                taskToDelete && dispatch(deleteTask(taskToDelete));
+                dispatch(addTask(newTask));
+            } else {
+                dispatch(addTask(newTask));
+            }
+                setInputValue('');
+                dispatch(setEditText(''))
+                dispatch(setPopupClose());
+        } else alert('Длина введенного текста должна быть больше 2 и меньше 300 символов')
     }
   
     useEscapeKey(handleCloseButton);
     useOutsideClick(handleCloseButton, ref);
 
     useEffect(() => {
-        console.log('allTasks', allTasks)
-    }, [allTasks])
+        setInputValue(editText);
+    }, [editText]);
 
     return ( 
         <article className={popupWindowClassName}>
-            <div ref={ref} className={styles.window}>
-                <button type="button" onClick={handleCloseButton} className={styles.close}></button>
-                
-                <input value={inputValue} type="text" onChange={(e) => setInputValue(e.target.value)} />
-                
-                
+            
+            {!isDeletePopupOpen 
+            ? <form ref={ref} className={styles.window}>
+                <button type="button" onClick={handleCloseButton} className={styles.closeButton}></button>
 
+                <h2>{editText !== '' ? 'Редактировать задачу' : 'Добавить задачу'}</h2>
+                <textarea 
+                    name='textarea'
+                    placeholder='Введите текст'
+                    minLength={2}  
+                    maxLength={300}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)} 
+                    className={styles.textarea}
+                >
+                    {editText}
+                </textarea>
+
+                <h3 className={styles.subtitle}>Выбрать статус задачи</h3>
                 <select
                     value={columnValue}
                     onChange={e => setColumnValue(e.target.value)}
-                    defaultValue="first"
+                    className={styles.select}
                 >
                     <option value="first">План</option>
                     <option value="second">В работе</option>
@@ -79,10 +111,24 @@ function Popup() {
                     <option value="fourth">Выполнено</option>
                 </select>
 
-                <button type="button" onClick={handleAddTask} className={styles.add}>
-                    {editText !== '' ? 'Редактировать задачу' : 'Добавить задачу'}
+                <button type="submit" onClick={handleTask} className={styles.addButton}>
+    
+                    {editText !== '' ? 'Редактировать' : 'Добавить'}
                 </button>
-            </div>
+            </form>
+            : <form ref={ref} className={styles.window}>
+                <button type="button" onClick={handleCloseButton} className={styles.closeButton}></button>
+
+                <h2>Подтверждение</h2>
+                <h2>Вы действительно хотите удалить эту задачу?</h2>
+
+                 <div className={styles.buttonContainer}>
+                    <button type="submit" onClick={handleCloseButton} className={styles.addButton}>Отменить</button>
+                    <button type="submit" onClick={handleDeleteTask} className={styles.addButton}>Удалить</button>
+                </div>
+            </form>
+            }
+            
         </article>
      );
 }
